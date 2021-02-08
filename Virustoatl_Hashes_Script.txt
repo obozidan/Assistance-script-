@@ -1,0 +1,52 @@
+import requests
+import time
+import json
+import pandas
+from datetime import datetime
+
+
+class my_dictionary(dict):
+
+    # __init__ function
+    def __init__(self):
+        self = dict()
+
+        # Function to add key:value
+
+    def add(self, key, value):
+        self[key] = value
+
+today =str( datetime.today().strftime("%m_%d_%Y_%H_%M_%S") )
+
+
+dict_obj = my_dictionary()
+file_path = str(input('please Enter The File Path: '))
+hash_CSV = pandas.read_csv((file_path))
+
+Urls = hash_CSV['Hash'].tolist()
+
+API_key = 'INPUT YOUR Virustotal API'
+url = 'https://www.virustotal.com/vtapi/v2/file/report'
+
+for i in Urls:
+      try:
+         parameters = {'apikey': API_key, 'resource': i}
+         response = requests.get(url=url, params=parameters)
+         json_response = json.loads(response.text)
+         for j in json_response['scans']:
+             
+             if j == "AV COMPANY YOU WANT TO CHECK":
+                 dic = json_response['scans'][j]
+                 if dic['detected']:
+                         
+                         dict_obj.add(i, 'detected by "AV COMPANY"')
+                         
+                 else:
+                     dict_obj.add(i, 'Not detected by "AV COMPANY"')
+         time.sleep(20)
+      except Exception:
+                      dict_obj.add(i, 'Hash not found in VirusTotal')
+                     
+
+with open("Virustotal Clean result"+today+".txt", 'a')  as result:
+    result.write(json.dumps(dict_obj, indent=4) )
